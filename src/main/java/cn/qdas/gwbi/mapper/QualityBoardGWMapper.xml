@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.qdas.gwbi.dao.QualityBoardGWMapper">
+    <sql id="wvTimeSearch">
+        <if test="startTime !='' and startTime!=null and startTime !='undefined' and startTime !='null'">
+            and w.WVDATZEIT &gt; #{startTime}
+        </if>
+        <if test="endTime !='' and endTime!=null and endTime !='undefined' and endTime !='null'">
+            and w.WVDATZEIT &lt; #{endTime}
+        </if>
+    </sql>
+    <select id="getProductLineComboboxDataMapper" resultType="map">
+            SELECT TEERZEUGNIS FROM TEIL WHERE TEERZEUGNIS IS NOT NULL GROUP BY TEERZEUGNIS
+    </select>
+    <select id="getProductLineDataBy125Mapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultMap="plDataMap">
+        SELECT a.* FROM (
+        SELECT ISNULL(t.TENRKURZ, '') AS TENRKURZ,ISNULL(t.TEERZEUGNIS, '') AS TEERZEUGNIS,m.MEMERKART,m.MEUGW,m.MEOGW,w.WVWERT,row_number() OVER (PARTITION BY w.WVTEIL ORDER BY w.WVDATZEIT DESC,w.WVWERTNR DESC) AS ROWINDEX
+        FROM WERTEVAR w LEFT JOIN TEIL t ON t.TETEIL=w.WVTEIL LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1
+        <include refid="wvTimeSearch"></include>
+        <if test="productLineName !='' and productLineName!=null and productLineName !='undefined' and productLineName !='null'">
+            and t.TEERZEUGNIS = #{productLineName}
+        </if>
+        ) a WHERE a.ROWINDEX &lt; 126
+
+    </select>
+    <select id="getProductLineDataByTimeMapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultMap="plDataMap">
+        SELECT ISNULL(t.TENRKURZ, '') AS TENRKURZ,ISNULL(t.TEERZEUGNIS, '') AS TEERZEUGNIS,m.MEMERKART,m.MEUGW,m.MEOGW,w.WVWERT
+        FROM WERTEVAR w LEFT JOIN TEIL t ON t.TETEIL=w.WVTEIL LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1
+        <if test="productLineName !='' and productLineName!=null and productLineName !='undefined' and productLineName !='null'">
+            and t.TEERZEUGNIS = #{productLineName}
+        </if>
+        <include refid="wvTimeSearch"></include>
+    </select>
+	<resultMap id="plDataMap" type="java.util.Map">
+		<result property="TENRKURZ" column="TENRKURZ"/>
+		<result property="TEERZEUGNIS" column="TEERZEUGNIS"/>
+		<collection property="wvList" ofType="java.util.Map" javaType="java.util.List">
+			<result property="WVWERT" column="WVWERT"/>
+			<result property="MEMERKART" column="MEMERKART"/>
+			<result property="MEUGW" column="MEUGW"/>
+			<result property="MEOGW" column="MEOGW"/>
+		</collection>
+	</resultMap>
+    <select id="getTeilDataBy125Mapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultMap="teilDataMap">
+        SELECT a.* FROM (
+        SELECT t.TETEIL,ISNULL(t.TETEILNR, '') AS TETEILNR,ISNULL(t.TEABT, '') AS TEABT,m.MEMERKART,m.MEUGW,m.MEOGW,w.WVWERT,row_number() OVER (PARTITION BY w.WVTEIL ORDER BY w.WVDATZEIT DESC,w.WVWERTNR DESC) AS ROWINDEX
+        FROM WERTEVAR w LEFT JOIN TEIL t ON t.TETEIL=w.WVTEIL LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1
+        <include refid="wvTimeSearch"></include>
+        <if test="productLineName !='' and productLineName!=null and productLineName !='undefined' and productLineName !='null'">
+            and t.TEERZEUGNIS = #{productLineName}
+        </if>
+        <if test="productLineName =='' and productLineName==null and productLineName =='undefined' and productLineName =='null'">
+            and t.TEERZEUGNIS IS NULL
+        </if>
+        <if test="teilK1007 !='' and teilK1007!=null and teilK1007 !='undefined' and teilK1007 !='null'">
+            and t.TENRKURZ = #{teilK1007}
+        </if>
+        <if test="teilK1007 =='' and teilK1007==null and teilK1007 =='undefined' and teilK1007 =='null'">
+            and t.TENRKURZ IS NULL
+        </if>
+        ) a WHERE a.ROWINDEX &lt; 126
+    </select>
+    <select id="getTeilDataByTimeMapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultMap="teilDataMap">
+        SELECT t.TETEIL,ISNULL(t.TETEILNR, '') AS TETEILNR,ISNULL(t.TEABT, '') AS TEABT,m.MEMERKART,m.MEUGW,m.MEOGW,w.WVWERT
+        FROM WERTEVAR w LEFT JOIN TEIL t ON t.TETEIL=w.WVTEIL LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1
+        <include refid="wvTimeSearch"></include>
+        <if test="productLineName !='' and productLineName!=null and productLineName !='undefined' and productLineName !='null'">
+            and t.TEERZEUGNIS = #{productLineName}
+        </if>
+        <if test="productLineName =='' and productLineName==null and productLineName =='undefined' and productLineName =='null'">
+            and t.TEERZEUGNIS IS NULL
+        </if>
+        <if test="teilK1007 !='' and teilK1007!=null and teilK1007 !='undefined' and teilK1007 !='null'">
+            and t.TENRKURZ = #{teilK1007}
+        </if>
+        <if test="teilK1007 =='' and teilK1007==null and teilK1007 =='undefined' and teilK1007 =='null'">
+            and t.TENRKURZ IS NULL
+        </if>
+    </select>
+    <resultMap id="teilDataMap" type="java.util.Map">
+        <result property="TETEIL" column="TETEIL"/>
+        <result property="TETEILNR" column="TETEILNR"/>
+        <result property="TEABT" column="TEABT"/>
+        <collection property="wvList" ofType="java.util.Map" javaType="java.util.List">
+            <result property="WVWERT" column="WVWERT"/>
+            <result property="MEMERKART" column="MEMERKART"/>
+            <result property="MEUGW" column="MEUGW"/>
+            <result property="MEOGW" column="MEOGW"/>
+        </collection>
+    </resultMap>
+    <select id="getMerkmalDataBy125Mapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultMap="merkmalDataMap">
+        SELECT a.* FROM (
+        SELECT m.METEIL,m.MEMERKMAL,m.MEMERKNR,m.MEMERKBEZ,m.MEMERKART,m.MEUGW,m.MEOGW,w.WVWERT,row_number() OVER (PARTITION BY m.MEMERKMAL ORDER BY w.WVDATZEIT DESC,w.WVWERTNR DESC) AS ROWINDEX
+        FROM WERTEVAR w LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1 AND m.METEIL=#{teilId} <include refid="wvTimeSearch"></include>
+        ) a WHERE a.ROWINDEX &lt; 126
+    </select>
+    <select id="getMerkmalDataByTimeMapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultMap="merkmalDataMap">
+        SELECT m.METEIL,m.MEMERKMAL,m.MEMERKNR,m.MEMERKBEZ,m.MEMERKART,m.MEUGW,m.MEOGW,w.WVWERT
+        FROM WERTEVAR w LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1 AND m.METEIL=#{teilId} <include refid="wvTimeSearch"></include>
+    </select>
+    <resultMap id="merkmalDataMap" type="java.util.Map">
+        <result property="METEIL" column="METEIL"/>
+        <result property="MEMERKMAL" column="MEMERKMAL"/>
+        <result property="MEMERKNR" column="MEMERKNR"/>
+        <result property="MEMERKBEZ" column="MEMERKBEZ"/>
+        <collection property="wvList" ofType="java.util.Map" javaType="java.util.List">
+            <result property="WVWERT" column="WVWERT"/>
+            <result property="MEMERKART" column="MEMERKART"/>
+            <result property="MEUGW" column="MEUGW"/>
+            <result property="MEOGW" column="MEOGW"/>
+        </collection>
+    </resultMap>
+
+    <select id="getChartDataBy125Mapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultType="map">
+        SELECT a.* FROM(
+            select TOP 125 t.TEERZEUGNIS,t.TEBEZEICH,t.TETEILNR,m.MEMERKBEZ,w.WVTEIL,w.WVMERKMAL,w.WVWERTNR,w.WVWERT,CONVERT(varchar(100),w.WVDATZEIT, 20) AS WVDATZEIT,m.MEUGW,m.MEOGW,m.MENENNMAS,m.MEMERKART,
+            ISNULL(ma.MABEZ, '') AS MABEZ,ISNULL(p.PMNR, '') AS PMNR,ISNULL(w.WV0014, '') AS WV0014,ISNULL(n.NEBESCH, '') AS NEBESCH
+            FROM WERTEVAR w
+            LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL=m.MEMERKMAL
+            LEFT JOIN MASCHINE ma ON ma.MAMASCHINE=w.WVMASCHINE
+            LEFT JOIN PRUEFMIT p ON w.WVPRUEFMIT=p.PMPRUEFMIT
+            LEFT JOIN TEIL t ON w.WVTEIL=t.TETEIL
+            LEFT JOIN NEST n ON w.WVNEST=n.NENEST
+            where w.WVMERKMAL=#{merkmalId} and w.WVTEIL=#{teilId}
+            <include refid="wvTimeSearch"></include>
+            ORDER BY w.WVDATZEIT DESC) a
+        ORDER BY a.WVDATZEIT
+    </select>
+    <select id="getChartDataByTimeMapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultType="map">
+        select t.TEERZEUGNIS,t.TEBEZEICH,t.TETEILNR,m.MEMERKBEZ,w.WVTEIL,w.WVMERKMAL,w.WVWERTNR,w.WVWERT,CONVERT(varchar(100),w.WVDATZEIT, 20) AS WVDATZEIT,m.MEUGW,m.MEOGW,m.MENENNMAS,m.MEMERKART,
+        ISNULL(ma.MABEZ, '') AS MABEZ,ISNULL(p.PMNR, '') AS PMNR,ISNULL(w.WV0014, '') AS WV0014
+		FROM WERTEVAR w
+		LEFT JOIN MERKMAL m ON w.WVTEIL=m.METEIL AND w.WVMERKMAL=m.MEMERKMAL
+		LEFT JOIN MASCHINE ma ON ma.MAMASCHINE=w.WVMASCHINE
+        LEFT JOIN PRUEFMIT p ON w.WVPRUEFMIT=p.PMPRUEFMIT
+        LEFT JOIN TEIL t ON w.WVTEIL=t.TETEIL
+		where w.WVMERKMAL=#{merkmalId} and w.WVTEIL=#{teilId}
+        <include refid="wvTimeSearch"></include>
+		ORDER BY w.WVDATZEIT
+    </select>
+    <select id="getQbShowFormInfoMapper" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultType="map">
+       <!-- SELECT t.TEERZEUGNIS,m.METEIL,m.MEMERKMAL,m.MEMERKBEZ,m.MENENNMAS,m.MEUGW,m.MEOGW,m.MEMERKART,t.TEBEZEICH,t.TETEILNR
+        FROM MERKMAL m
+        LEFT JOIN TEIL t ON t.TETEIL = m.METEIL
+        LEFT JOIN WERTEVAR w ON w.WVTEIL=m.METEIL AND w.WVMERKMAL = m.MEMERKMAL
+        WHERE 1=1
+        <include refid="wvTimeSearch"></include>
+        <if test="teilId !='' and teilId!=null and teilId !='undefined' and teilId !='null'">
+            and m.METEIL = #{teilId}
+        </if>
+        GROUP BY t.TEERZEUGNIS,m.METEIL,m.MEMERKMAL,m.MEMERKBEZ,m.MENENNMAS,m.MEUGW,m.MEOGW,m.MEMERKART,t.TEBEZEICH,t.TETEILNR
+        ORDER BY m.METEIL-->
+        SELECT w.WVTEIL,w.WVMERKMAL FROM WERTEVAR w  LEFT JOIN TEIL t ON w.WVTEIL=t.TETEIL WHERE 1=1
+        <include refid="wvTimeSearch"></include>
+        <if test="teilId !='' and teilId!=null and teilId !='undefined' and teilId !='null'">
+            and w.WVTEIL = #{teilId}
+        </if>
+        <if test="productLineName !='' and productLineName!=null and productLineName !='undefined' and productLineName !='null'">
+            and t.TEERZEUGNIS = #{productLineName}
+        </if>
+        <if test="teilK1007 !='' and teilK1007!=null and teilK1007 !='undefined' and teilK1007 !='null'">
+            and t.TENRKURZ = #{teilK1007}
+        </if>
+        GROUP BY w.WVTEIL,w.WVMERKMAL
+    </select>
+
+
+    <select id="getWertevarMaxValue" parameterType="cn.qdas.gwbi.bean.QualityBoardGW" resultType="java.util.Map">
+		SELECT MAX(WVWERTNR) AS WVWERTNR FROM WERTEVAR WHERE WVTEIL=#{teilId} AND WVMERKMAL=#{merkmalId}
+	</select>
+</mapper>

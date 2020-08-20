@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.qdas.core.dao.SystemSetupMapper">
+	<resultMap type="cn.qdas.core.bean.User" id="userMap">
+		<id property="userId" column="user_id"/>
+		<result property="userName" column="user_name"/>
+		<result property="password" column="password"/>
+		<result property="userAccount" column="user_account"/>
+		<result property="locked" column="locked"/>
+	</resultMap>
+	<resultMap type="cn.qdas.core.bean.Role" id="roleMap">
+		<id property="roleId" column="role_id"/>
+		<result property="roleName" column="role_name"/>
+		<result property="available" column="available"/>
+	</resultMap>
+	<resultMap type="cn.qdas.core.bean.Permission" id="permissionMap">
+		<id property="permissionId" column="permission_id"/>
+		<result property="permissionName" column="permission_name"/>
+		<result property="type" column="type"/>
+		<result property="url" column="url"/>
+		<result property="parentId" column="parentId"/>
+		<result property="available" column="available"/>
+		<result property="icon" column="icon"/>
+	</resultMap>
+	<resultMap type="cn.qdas.core.bean.User" id="userRoleListMap" extends="userMap">
+		<collection property="roleList"  resultMap="rolePermissionListMap" />
+	</resultMap>
+	<resultMap type="cn.qdas.core.bean.Role" id="rolePermissionListMap" extends="roleMap">
+		<collection property="permissionList" resultMap="permissionMap"/>
+	</resultMap>
+	
+	
+	
+	<select id="getAllUser" resultMap="userRoleListMap">
+		select u.user_id,u.user_name,u.user_account,u.password,u.locked,
+		r.role_id,r.role_name,r.available
+		from [system_user] u
+		left join system_user_role ur on u.user_id = ur.user_id 
+		left join system_role r on ur.role_id=r.role_id
+		where 1=1
+	</select>
+	<insert id="addUser" parameterType="cn.qdas.core.bean.User">
+		insert into [system_user](
+			user_name,user_account,password,locked
+		)values(
+			#{userName},#{userAccount},#{password},#{locked}
+		)
+	</insert>
+	<update id="editUser" parameterType="cn.qdas.core.bean.User">
+		update [system_user] set
+			user_name=#{userName},user_account=#{userAccount},password=#{password},locked=#{locked}
+		where user_id=#{userId}
+	</update>
+	<delete id="delUser" parameterType="cn.qdas.core.bean.User">
+		delete from [system_user] where user_id=#{userId}
+	</delete>
+	<delete id="delUserRole" parameterType="java.lang.String">
+		delete from system_user_role
+		where user_id=#{userId}
+	</delete>
+	<insert id="addUserRole" parameterType="java.lang.String">
+		insert into system_user_role (user_id,role_id) values
+		<foreach collection="roleIdArr" index="index" item="item" separator=",">
+			(#{userId},${item})
+		</foreach>
+	</insert>
+	<select id="getAllRole" resultType="cn.qdas.core.bean.Role">
+		select role_id,role_name,available from system_role
+	</select>
+	<insert id="addRole" parameterType="cn.qdas.core.bean.Role">
+		insert into system_role(
+			role_name,available
+		)values(
+			#{roleName},#{available}
+		)
+	</insert>
+	<update id="editRole" parameterType="cn.qdas.core.bean.Role">
+		update system_role set 
+			role_name=#{roleName},
+			available=#{available}
+			where role_id=#{roleId}
+	</update>
+	<delete id="delRole" parameterType="cn.qdas.core.bean.Role">
+		delete from system_role where role_id=#{roleId}
+	</delete>
+	<select id="getAllPermission" resultType="cn.qdas.core.bean.Permission">
+		select permission_id,permission_name,type,available from system_permission
+		where available='0'
+	</select>
+	<select id="getPermissionByRoleId" parameterType="cn.qdas.core.bean.Role" resultMap="rolePermissionListMap">
+		select r.role_id,r.role_name,r.available,
+				p.permission_id,p.permission_name		
+		from system_role r
+		inner join system_role_permission rp on r.role_id=rp.role_id
+		inner join system_permission p on rp.permission_id=p.permission_id
+		where 1=1
+		and r.role_id=#{roleId}
+		and p.available='0'
+	</select>
+	<delete id="delPermissionByRoleId" parameterType="java.lang.String">
+		delete from system_role_permission
+		where role_id=#{roleId}
+	</delete>
+	<delete id="delUserRoleByRoleId" parameterType="java.lang.String">
+		delete from system_user_role
+		where role_id=#{roleId}
+	</delete>
+	<insert id="addPermissionById" parameterType="java.lang.String">
+		insert into system_role_permission (role_id,permission_id) values
+		<foreach collection="permissionIds" index="index" item="item" separator=",">
+			(#{roleId},${item})
+		</foreach>
+	</insert>
+</mapper>

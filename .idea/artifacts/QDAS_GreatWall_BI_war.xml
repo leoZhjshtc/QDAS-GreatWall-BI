@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="QDAS-GreatWall-BI:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>QDAS-GreatWall-BI</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="QDAS-GreatWall-BI-0.0.1.war">
+      <element id="artifact" artifact-name="QDAS-GreatWall-BI:war exploded" />
+    </root>
+  </artifact>
+</component>
